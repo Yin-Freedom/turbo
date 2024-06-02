@@ -46,6 +46,7 @@ DROP TABLE IF EXISTS `ei_flow_instance`;
 CREATE TABLE IF NOT EXISTS `ei_flow_instance` (
     `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
     `flow_instance_id` varchar(128) NOT NULL DEFAULT '' COMMENT '流程执行实例id',
+    `parent_flow_instance_id` varchar(128) NOT NULL DEFAULT '' COMMENT '父流程执行实例id',
     `flow_deploy_id` varchar(128) NOT NULL DEFAULT '' COMMENT '流程模型部署id',
     `flow_module_id` varchar(128) NOT NULL DEFAULT '' COMMENT '流程模型id',
     `tenant_id` varchar(16) NOT NULL DEFAULT '' COMMENT '业务方标识',
