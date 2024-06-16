@@ -1,16 +1,22 @@
 package com.didiglobal.turbo.demo;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.didiglobal.turbo.demo.controller.FlowController;
+import com.didiglobal.turbo.demo.dto.QueryDTO;
+import com.didiglobal.turbo.demo.pojo.GetFlowModuleListRequest;
+import com.didiglobal.turbo.demo.pojo.BaseResponse;
 import com.didiglobal.turbo.demo.pojo.request.CreateFlowRequest;
-import com.didiglobal.turbo.demo.pojo.request.DeployFlowRequest;
-import com.didiglobal.turbo.demo.pojo.request.GetFlowModuleListRequest;
-import com.didiglobal.turbo.demo.pojo.request.GetFlowModuleRequest;
 import com.didiglobal.turbo.demo.pojo.request.UpdateFlowRequest;
-import com.didiglobal.turbo.demo.pojo.response.BaseResponse;
-import com.didiglobal.turbo.demo.pojo.response.CreateFlowResponse;
-import com.didiglobal.turbo.demo.pojo.response.DeployFlowResponse;
-import com.didiglobal.turbo.demo.pojo.response.FlowModuleListResponse;
-import com.didiglobal.turbo.demo.pojo.response.GetFlowModuleResponse;
+import com.didiglobal.turbo.demo.util.Constant;
+import com.didiglobal.turbo.engine.entity.FlowDefinitionPO;
+import com.didiglobal.turbo.engine.param.CreateFlowParam;
+import com.didiglobal.turbo.engine.param.DeployFlowParam;
+import com.didiglobal.turbo.engine.param.GetFlowModuleParam;
+import com.didiglobal.turbo.engine.param.UpdateFlowParam;
+import com.didiglobal.turbo.engine.result.CreateFlowResult;
+import com.didiglobal.turbo.engine.result.DeployFlowResult;
+import com.didiglobal.turbo.engine.result.FlowModuleResult;
+import com.didiglobal.turbo.engine.result.UpdateFlowResult;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,7 +56,7 @@ public class FlowControllerTest {
         createFlowRequest.setCaller("testCaller");// 使用方标识 必需
         createFlowRequest.setOperator("testOperator");// 操作人 非必需
         createFlowRequest.setRemark("备注test");  //备注  非必需
-        BaseResponse<CreateFlowResponse> res = flowController.createFlow(createFlowRequest);
+        BaseResponse<CreateFlowResult> res = flowController.createFlow(createFlowRequest);
         Assert.assertTrue(res.getErrCode() == 1000); //1000 成功
         flowModuleId = res.getData().getFlowModuleId();//模型唯一标识  必需
         String str = "createFlow 处理成功 flowModuleId:%s";
@@ -74,7 +80,7 @@ public class FlowControllerTest {
         updateFlowRequest.setFlowName("测试流程"); // 模型名称  非必需
         updateFlowRequest.setRemark("备注test");//备注  非必需
         updateFlowRequest.setOperator("testOperator");// 操作人 非必需
-        BaseResponse<String> res = flowController.saveFlowModel(updateFlowRequest);
+        BaseResponse<UpdateFlowResult> res = flowController.saveFlowModel(updateFlowRequest);
         Assert.assertEquals(1000, res.getErrCode()); //1000 成功
     }
 
@@ -83,12 +89,12 @@ public class FlowControllerTest {
      */
     @Test
     public void deployFlow() {
-        DeployFlowRequest deployFlowRequest = new DeployFlowRequest();
+        DeployFlowParam deployFlowRequest = new DeployFlowParam(Constant.tenant, Constant.caller);
         deployFlowRequest.setFlowModuleId(flowModuleId);//模型唯一标识 必需
         deployFlowRequest.setTenant("testTenant"); //租户标识   必需
         deployFlowRequest.setCaller("testCaller");// 使用方标识  必需
         deployFlowRequest.setOperator("testOperator"); // 操作人 非必需
-        BaseResponse<DeployFlowResponse> res = flowController.deployFlow(deployFlowRequest);
+        BaseResponse<DeployFlowResult> res = flowController.deployFlow(deployFlowRequest);
         Assert.assertTrue(res.getErrCode() == 1000); //1000 成功
 
         String flowModuleId = res.getData().getFlowModuleId();//模型唯一标识  必需
@@ -103,13 +109,13 @@ public class FlowControllerTest {
      */
     @Test
     public void queryFlow() {
-        GetFlowModuleRequest getFlowModuleRequest = new GetFlowModuleRequest();
+        GetFlowModuleParam getFlowModuleRequest = new GetFlowModuleParam();
         getFlowModuleRequest.setFlowModuleId(flowModuleId);//模型唯一标识 两个参数必须传入一个
         getFlowModuleRequest.setFlowDeployId(flowDeployId);//模型一次部署唯一标识 两个参数必须传入一个
-        BaseResponse<GetFlowModuleResponse> res = flowController.queryFlow(getFlowModuleRequest);
+        BaseResponse<FlowModuleResult> res = flowController.queryFlow(getFlowModuleRequest);
         Assert.assertTrue(res.getErrCode() == 1000); //1000 成功
 
-        GetFlowModuleResponse getFlowModuleResponse = res.getData();
+        FlowModuleResult getFlowModuleResponse = res.getData();
         getFlowModuleResponse.getFlowModel();//模型内容 必需
         getFlowModuleResponse.getFlowModuleId();////模型唯一标识 必需
         getFlowModuleResponse.getCaller();// 使用方标识  必需
@@ -129,13 +135,13 @@ public class FlowControllerTest {
      */
     @Test
     public void queryFlowList() {
-        GetFlowModuleListRequest getFlowModuleListRequest = new GetFlowModuleListRequest();
-        getFlowModuleListRequest.setFlowName("测试流程");  // 模型名称  非必需
-        getFlowModuleListRequest.setFlowModuleId(null);//模型唯一标识 非必需
-        getFlowModuleListRequest.setFlowDeployId(null);//模型一次部署唯一标识 非必需
-        getFlowModuleListRequest.setCurrent(1);//当前页  非必需 默认为1
-        getFlowModuleListRequest.setSize(10);//每页条数   非必需 默认为10
-        BaseResponse<FlowModuleListResponse> res = flowController.queryFlowList(getFlowModuleListRequest);
+        QueryDTO getFlowModuleListRequest = new QueryDTO();
+        //getFlowModuleListRequest.setFlowName("测试流程");  // 模型名称  非必需
+        //getFlowModuleListRequest.setFlowModuleId(null);//模型唯一标识 非必需
+        //getFlowModuleListRequest.setFlowDeployId(null);//模型一次部署唯一标识 非必需
+        getFlowModuleListRequest.setCurrent(1L);//当前页  非必需 默认为1
+        getFlowModuleListRequest.setSize(10L);//每页条数   非必需 默认为10
+        BaseResponse<IPage<FlowDefinitionPO>> res = flowController.findDefinitionByPage(getFlowModuleListRequest);
         Assert.assertTrue(res.getErrCode() == 1000); //1000 成功
 
         String str = "queryFlowList 处理成功   总条数:%s  当前页：%s 每页条数：%s";

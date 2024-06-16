@@ -1,4 +1,4 @@
-package com.didiglobal.turbo.demo.pojo.response;
+package com.didiglobal.turbo.demo.pojo;
 
 import com.didiglobal.turbo.engine.common.ErrorEnum;
 

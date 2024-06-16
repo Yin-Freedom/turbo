@@ -1,6 +1,9 @@
 package com.didiglobal.turbo.engine.dao;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.didiglobal.turbo.engine.dao.mapper.FlowDefinitionMapper;
 import com.didiglobal.turbo.engine.entity.FlowDefinitionPO;
 import org.apache.commons.lang3.StringUtils;
@@ -67,5 +70,20 @@ public class FlowDefinitionDAO extends BaseDAO<FlowDefinitionMapper, FlowDefinit
             LOGGER.error("getById exception.||flowModuleId={}", flowModuleId, e);
         }
         return null;
+    }
+
+    public IPage<FlowDefinitionPO> findByPage(Long current, Long size, String blur) {
+        Page<FlowDefinitionPO> page = new Page<>();
+        if (current != null && size != null) {
+            page.setCurrent(current);
+            page.setSize(size);
+        }
+        QueryWrapper<FlowDefinitionPO> queryWrapper = new QueryWrapper<>();
+        if (StringUtils.isNoneBlank(blur)) {
+            queryWrapper.like("flow_module_id", blur)
+                    .or()
+                    .like("flow_key", blur);
+        }
+        return page(page, queryWrapper);
     }
 }

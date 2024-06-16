@@ -1,10 +1,15 @@
 package com.didiglobal.turbo.engine.dao;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.didiglobal.turbo.engine.common.NodeInstanceStatus;
 import com.didiglobal.turbo.engine.dao.mapper.NodeInstanceMapper;
+import com.didiglobal.turbo.engine.entity.FlowDefinitionPO;
 import com.didiglobal.turbo.engine.entity.NodeInstancePO;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
@@ -132,5 +137,20 @@ public class NodeInstanceDAO extends BaseDAO<NodeInstanceMapper, NodeInstancePO>
         nodeInstancePO.setStatus(status);
         nodeInstancePO.setModifyTime(new Date());
         baseMapper.updateStatus(nodeInstancePO);
+    }
+
+    public IPage<NodeInstancePO> findByPage(Long current, Long size, String blur) {
+        Page<NodeInstancePO> page = new Page<>();
+        if (current != null && size != null) {
+            page.setCurrent(current);
+            page.setSize(size);
+        }
+        QueryWrapper<NodeInstancePO> queryWrapper = new QueryWrapper<>();
+        if (StringUtils.isNoneBlank(blur)) {
+            queryWrapper.like("flow_deploy_id", blur)
+                    .or()
+                    .like("node_key", blur);
+        }
+        return page(page, queryWrapper);
     }
 }

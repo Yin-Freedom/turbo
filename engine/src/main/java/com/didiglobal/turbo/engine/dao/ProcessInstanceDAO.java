@@ -1,7 +1,12 @@
 package com.didiglobal.turbo.engine.dao;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.didiglobal.turbo.engine.dao.mapper.ProcessInstanceMapper;
+import com.didiglobal.turbo.engine.entity.FlowDefinitionPO;
 import com.didiglobal.turbo.engine.entity.FlowInstancePO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
@@ -38,5 +43,20 @@ public class ProcessInstanceDAO extends BaseDAO<ProcessInstanceMapper, FlowInsta
         flowInstancePO.setStatus(status);
         flowInstancePO.setModifyTime(new Date());
         baseMapper.updateStatus(flowInstancePO);
+    }
+
+    public IPage<FlowInstancePO> findByPage(Long current, Long size, String blur) {
+        Page<FlowInstancePO> page = new Page<>();
+        if (current != null && size != null) {
+            page.setCurrent(current);
+            page.setSize(size);
+        }
+        QueryWrapper<FlowInstancePO> queryWrapper = new QueryWrapper<>();
+        if (StringUtils.isNoneBlank(blur)) {
+            queryWrapper.like("flow_module_id", blur)
+                    .or()
+                    .like("flow_deploy_id", blur);
+        }
+        return page(page, queryWrapper);
     }
 }

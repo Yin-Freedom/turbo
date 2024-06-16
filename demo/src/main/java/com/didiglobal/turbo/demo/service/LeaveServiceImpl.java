@@ -1,8 +1,14 @@
 package com.didiglobal.turbo.demo.service;
 
+import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.didiglobal.turbo.demo.util.Constant;
 import com.didiglobal.turbo.demo.util.EntityBuilder;
+import com.didiglobal.turbo.engine.dao.FlowDefinitionDAO;
+import com.didiglobal.turbo.engine.dao.FlowDeploymentDAO;
 import com.didiglobal.turbo.engine.engine.ProcessEngine;
+import com.didiglobal.turbo.engine.entity.FlowDefinitionPO;
+import com.didiglobal.turbo.engine.entity.FlowDeploymentPO;
 import com.didiglobal.turbo.engine.model.InstanceData;
 import com.didiglobal.turbo.engine.param.CommitTaskParam;
 import com.didiglobal.turbo.engine.param.CreateFlowParam;
@@ -19,9 +25,9 @@ import com.didiglobal.turbo.engine.result.UpdateFlowResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,11 +48,10 @@ public class LeaveServiceImpl {
 
     @Resource
     private ProcessEngine processEngine;
-
-    private CreateFlowParam createFlowParam;
-    private CreateFlowResult createFlowResult;
-    private UpdateFlowResult updateFlowResult;
-    private DeployFlowResult deployFlowResult;
+    @Resource
+    private FlowDefinitionDAO flowDefinitionDAO;
+    @Resource
+    private FlowDeploymentDAO flowDeploymentDAO;
 
     public void run() {
         LOGGER.info("LeaveSOP Demo run:");
@@ -64,29 +69,54 @@ public class LeaveServiceImpl {
         startProcessToEnd();
     }
 
+    private FlowDeploymentPO findFlowDeploymentPO(String flowName) {
+        List<FlowDeploymentPO> list = flowDeploymentDAO.list(
+                new QueryWrapper<FlowDeploymentPO>().eq("flow_name", flowName)
+        );
+        if (!CollectionUtils.isEmpty(list)) {
+            return list.get(0);
+        }
+        return null;
+    }
+
+    private String getFlowDeployId() {
+        FlowDeploymentPO object = findFlowDeploymentPO("请假SOP");
+        if (object != null) {
+            return object.getFlowDeployId();
+        }
+        return null;
+    }
+
+    private String getFlowModuleId() {
+        List<FlowDefinitionPO> list = flowDefinitionDAO.list(
+                new QueryWrapper<FlowDefinitionPO>().eq("flow_name", "请假SOP")
+        );
+        return list.get(0).getFlowModuleId();
+    }
+
     private void createFlow() {
-        createFlowParam = new CreateFlowParam(Constant.tenant, Constant.caller);
+        CreateFlowParam createFlowParam = new CreateFlowParam(Constant.tenant, Constant.caller);
         createFlowParam.setFlowKey("person_time");
         createFlowParam.setFlowName("请假SOP");
         createFlowParam.setRemark("demo");
         createFlowParam.setOperator(Constant.operator);
-        createFlowResult = processEngine.createFlow(createFlowParam);
-        LOGGER.info("createFlow.||createFlowResult={}", createFlowResult);
+        CreateFlowResult createFlowResult = processEngine.createFlow(createFlowParam);
+        LOGGER.info("createFlow.||createFlowResult={}", JSON.toJSONString(createFlowResult));
     }
 
     private void updateFlow() {
         UpdateFlowParam updateFlowParam = new UpdateFlowParam(Constant.tenant, Constant.caller);
         updateFlowParam.setFlowModel(EntityBuilder.buildLeaveFlowModelStr());
-        updateFlowParam.setFlowModuleId(createFlowResult.getFlowModuleId());
-        updateFlowResult = processEngine.updateFlow(updateFlowParam);
-        LOGGER.info("updateFlow.||updateFlowResult={}", updateFlowResult);
+        updateFlowParam.setFlowModuleId(getFlowModuleId());
+        UpdateFlowResult updateFlowResult = processEngine.updateFlow(updateFlowParam);
+        LOGGER.info("updateFlow.||updateFlowResult={}", JSON.toJSONString(updateFlowResult));
     }
 
     private void deployFlow() {
         DeployFlowParam param = new DeployFlowParam(Constant.tenant, Constant.caller);
-        param.setFlowModuleId(createFlowResult.getFlowModuleId());
-        deployFlowResult = processEngine.deployFlow(param);
-        LOGGER.info("deployFlow.||deployFlowResult={}", deployFlowResult);
+        param.setFlowModuleId(getFlowModuleId());
+        DeployFlowResult deployFlowResult = processEngine.deployFlow(param);
+        LOGGER.info("deployFlow.||deployFlowResult={}", JSON.toJSONString(deployFlowResult));
     }
 
     private void startProcessToEnd() {
@@ -97,10 +127,14 @@ public class LeaveServiceImpl {
         commitCompleteProcess(result);
     }
 
-    // 用户拉起请假sop
     private StartProcessResult startProcess() {
+        return startProcess(getFlowDeployId());
+    }
+
+    // 用户拉起请假sop
+    private StartProcessResult startProcess(String flowDeployId) {
         StartProcessParam startProcessParam = new StartProcessParam();
-        startProcessParam.setFlowDeployId(deployFlowResult.getFlowDeployId());
+        startProcessParam.setFlowDeployId(flowDeployId);
         List<InstanceData> variables = new ArrayList<>();
         variables.add(new InstanceData("user_name", "请假人名字"));
         startProcessParam.setVariables(variables);

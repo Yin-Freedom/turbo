@@ -1,4 +1,4 @@
-package com.didiglobal.turbo.demo.pojo.request;
+package com.didiglobal.turbo.demo.pojo;
 
 /**
  * @Author: james zhangxiao

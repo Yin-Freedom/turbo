@@ -1,7 +1,9 @@
 package com.didiglobal.turbo.engine.param;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.base.MoreObjects;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CreateFlowParam extends OperationParam {
     private String flowKey;
     private String flowName;
