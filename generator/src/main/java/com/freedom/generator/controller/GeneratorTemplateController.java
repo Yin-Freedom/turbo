@@ -1,9 +1,10 @@
 package com.freedom.generator.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.freedom.generator.entity.GeneratorTemplate;
 import com.freedom.generator.filter.GeneratorTemplateFilter;
 import com.freedom.generator.service.GeneratorTemplateService;
-import org.springframework.data.domain.Page;
+import com.freedom.workflow.common.api.CommonResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,32 +24,34 @@ public class GeneratorTemplateController {
     private GeneratorTemplateService generatorTemplateService;
 
     @RequestMapping("/findById")
-    public GeneratorTemplate findById(Long id) {
-        return generatorTemplateService.findById(id);
+    public CommonResult<GeneratorTemplate> findById(Long id) {
+        return CommonResult.success(generatorTemplateService.findById(id));
     }
 
     @RequestMapping("/findByPage")
-    public Page<GeneratorTemplate> findByPage(@RequestBody GeneratorTemplateFilter filter) {
-        return generatorTemplateService.findByPage(filter);
+    public CommonResult<IPage<GeneratorTemplate>> findByPage(@RequestBody GeneratorTemplateFilter filter) {
+        return CommonResult.success(generatorTemplateService.findByPage(filter));
     }
 
     @RequestMapping("/findByList")
-    public List<GeneratorTemplate> findByList(@RequestBody GeneratorTemplateFilter filter) {
-        return generatorTemplateService.findByList(filter);
+    public CommonResult<List<GeneratorTemplate>> findByList(@RequestBody GeneratorTemplateFilter filter) {
+        return CommonResult.success(generatorTemplateService.findByList(filter));
     }
 
     @RequestMapping("/findByTemplateName")
-    public List<GeneratorTemplate> findByTemplateName(@RequestBody GeneratorTemplateFilter filter) {
-        return generatorTemplateService.findByList(filter);
+    public CommonResult<List<GeneratorTemplate>> findByTemplateName(@RequestBody GeneratorTemplateFilter filter) {
+        return CommonResult.success(generatorTemplateService.findByList(filter));
     }
 
     @RequestMapping("/saveOrUpdate")
-    public void saveOrUpdate(@RequestBody GeneratorTemplate entity) {
+    public CommonResult saveOrUpdate(@RequestBody GeneratorTemplate entity) {
         generatorTemplateService.saveOrUpdate(entity);
+        return CommonResult.success(null);
     }
 
     @RequestMapping("/deleteByIds")
-    public void deleteByIds(@RequestBody Long[] ids) {
+    public CommonResult deleteByIds(@RequestBody Long[] ids) {
         generatorTemplateService.deleteByIds(Arrays.asList(ids));
+        return CommonResult.success(null);
     }
 }

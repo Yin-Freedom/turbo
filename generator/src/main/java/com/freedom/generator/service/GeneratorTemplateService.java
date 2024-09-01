@@ -1,15 +1,13 @@
 package com.freedom.generator.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.freedom.generator.dao.GeneratorTemplateDAO;
 import com.freedom.generator.entity.GeneratorTemplate;
 import com.freedom.generator.filter.GeneratorTemplateFilter;
-import org.springframework.beans.BeanUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.Collection;
@@ -25,36 +23,32 @@ public class GeneratorTemplateService {
     private GeneratorTemplateDAO generatorTemplateDAO;
 
     public GeneratorTemplate findById(Long id) {
-        return generatorTemplateDAO.findById(id).orElse(null);
+        return generatorTemplateDAO.getById(id);
     }
 
-    public Page<GeneratorTemplate> findByPage(GeneratorTemplateFilter filter) {
-        return generatorTemplateDAO.findByPage(filter);
+    public IPage<GeneratorTemplate> findByPage(GeneratorTemplateFilter filter) {
+        IPage<GeneratorTemplate> page = new Page<>(filter.getStart(), filter.getLimit());
+        QueryWrapper<GeneratorTemplate> queryWrapper = new QueryWrapper<>();
+        if (StringUtils.isNotBlank(filter.getTemplateName())) {
+            queryWrapper.like("template_name", filter.getTemplateName());
+        }
+        queryWrapper.orderByDesc("id");
+        return generatorTemplateDAO.page(page, queryWrapper);
     }
 
     public List<GeneratorTemplate> findByList(GeneratorTemplateFilter filter) {
-        filter.setStart(0);
-        filter.setLimit(Integer.MAX_VALUE);
-        Page<GeneratorTemplate> page = findByPage(filter);
-        return page.getContent();
+        QueryWrapper<GeneratorTemplate> queryWrapper = new QueryWrapper<>();
+        if (StringUtils.isNotBlank(filter.getTemplateName())) {
+            queryWrapper.like("template_name", filter.getTemplateName());
+        }
+        return generatorTemplateDAO.list(queryWrapper);
     }
 
     public void saveOrUpdate(GeneratorTemplate entity) {
-        GeneratorTemplate db = generatorTemplateDAO.findById(entity.getId()).orElse(null);
-        if (db == null) {
-            generatorTemplateDAO.save(entity);
-        } else {
-            BeanUtils.copyProperties(entity, db, "id");
-            generatorTemplateDAO.save(db);
-        }
+        generatorTemplateDAO.saveOrUpdate(entity);
     }
 
     public void deleteByIds(Collection<Long> ids) {
-        if (CollectionUtils.isEmpty(ids)) {
-            return;
-        }
-        for (Long id : ids) {
-            generatorTemplateDAO.deleteById(id);
-        }
+        generatorTemplateDAO.removeByIds(ids);
     }
 }

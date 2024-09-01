@@ -1,12 +1,14 @@
 package com.freedom.generator;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * @author freedom
  */
-@SpringBootApplication(scanBasePackages = {"com.freedom.generator"})
+@MapperScan("com.freedom.generator.dao")
+@SpringBootApplication()
 public class GeneratorApplication {
 
     public static void main(String[] args) {
